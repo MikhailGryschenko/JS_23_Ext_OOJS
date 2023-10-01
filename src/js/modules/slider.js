@@ -1,9 +1,10 @@
 export default class Slider {
-    constructor(page, btns){
+    constructor(page, btns, modal){
         this.page = document.querySelector(page);
         this.slides = this.page.children;
         this.btns = document.querySelectorAll(btns);
         this.slideIndex = 1;
+        this.modal = document.querySelectorAll(modal);
     }
 
     showSlides(n) {
@@ -20,6 +21,16 @@ export default class Slider {
         });
 
         this.slides[this.slideIndex - 1].style.display = 'block';
+
+        this.modal.forEach(item => {
+            item.style.display = 'none';
+            if(this.slideIndex === 3) {
+                setTimeout(() => {
+                    item.style.display = 'block';
+                    item.classList.add('animated', 'fadeInUp')
+                }, 3000);
+            }
+        });
     }
 
     plusSlides(n) {
