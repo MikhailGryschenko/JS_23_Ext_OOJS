@@ -9,21 +9,27 @@ window.addEventListener('DOMContentLoaded', () => {
     const showUpSlider = new MiniSlider({
         container: '.showup__content-slider',
         prev: '.showup__prev',
-        next: '.showup__next'
+        next: '.showup__next',
+        activClass: 'card-active',
+        animate: true
     });
     showUpSlider.init();
 
     const modulesSlider = new MiniSlider({
         container: '.modules__content-slider',
         prev: '.modules__info-btns .slick-prev',
-        next: '.modules__info-btns .slick-next'
+        next: '.modules__info-btns .slick-next',
+        activClass: 'card-active',
+        animate: true,
+        autoplay: true
     });
     modulesSlider.init();
 
     const feedSlider = new MiniSlider({
         container: '.feed__slider',
         prev: '.feed__slider .slick-prev',
-        next: '.feed__slider .slick-next'
+        next: '.feed__slider .slick-next',
+        activClass: 'feed__item-active'
     });
     feedSlider.init();
 
