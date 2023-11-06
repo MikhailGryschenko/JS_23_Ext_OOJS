@@ -35,7 +35,7 @@ export default class MainSlider extends Slider {
         this.showSlides(this.slideIndex += n);
     }
 
-    render() {
+    bindTriggers() {
         this.btns.forEach(item => {
             item.addEventListener('click', () => {
                 this.plusSlides(1);
@@ -48,6 +48,29 @@ export default class MainSlider extends Slider {
             });
         });
 
-        this.showSlides(this.slideIndex);
+        document.querySelectorAll('.prevmodule').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.plusSlides(-1);
+            });
+        });
+        
+        document.querySelectorAll('.nextmodule').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();                    // Отменяем всплытие, т.к. next есть выше, срабатывает 2 раза и перелистывает на 2 вперёд.
+                e.preventDefault();
+                this.plusSlides(1);
+            });
+        });
+    }
+
+    render() {
+        if(this.container) {
+
+            this.showSlides(this.slideIndex);
+            this.bindTriggers();
+
+        }
     }
 }
