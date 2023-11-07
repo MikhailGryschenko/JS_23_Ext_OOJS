@@ -199,15 +199,25 @@ class VideoPlayer {
   bindTriggers() {
     this.btns.forEach(btn => {
       btn.addEventListener('click', () => {
+        this.activeBtn = btn;
         if (document.querySelector('iframe#frame')) {
+          // если вызвано модальное окно
           this.overlay.style.display = 'flex';
+          if (this.path !== btn.getAttribute('data-url')) {
+            this.path = btn.getAttribute('data-url');
+            this.player.loadVideoById({
+              videoId: this.path
+            });
+          }
         } else {
-          const path = btn.getAttribute('data-url');
-          this.createPlayer(path);
+          // если ещё не вызвано модальное окно
+          this.path = btn.getAttribute('data-url'); // то создаём новое инициализируещее свойство this.path, которое принимает дата урл из той кнопки, по которой был произведён клик
+          this.createPlayer(this.path); // и будем создавать плеер
         }
       });
     });
   }
+
   bindCloseBtn() {
     this.close.addEventListener('click', () => {
       this.overlay.style.display = 'none';
@@ -224,12 +234,14 @@ class VideoPlayer {
     this.overlay.style.display = 'flex';
   }
   init() {
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    this.bindTriggers();
-    this.bindCloseBtn();
+    if (this.btns.length > 0) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      this.bindTriggers();
+      this.bindCloseBtn();
+    }
   }
 }
 
@@ -537,8 +549,8 @@ window.addEventListener('DOMContentLoaded', () => {
     activClass: 'feed__item-active'
   });
   feedSlider.init();
-  const player = new _modules_playVideo__WEBPACK_IMPORTED_MODULE_2__["default"]('.showup .play', '.overlay');
-  player.init();
+  new _modules_playVideo__WEBPACK_IMPORTED_MODULE_2__["default"]('.showup .play', '.overlay').init();
+  new _modules_playVideo__WEBPACK_IMPORTED_MODULE_2__["default"]('.module__video-item .play', '.overlay').init();
 
   /*     const difference = new Difference('.officerold', '.officernew', '.officer__card-item');
       difference.init(); */

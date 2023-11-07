@@ -8,11 +8,17 @@ export default class VideoPlayer {
     bindTriggers() {
         this.btns.forEach(btn => {
             btn.addEventListener('click', () => {
-                if(document.querySelector('iframe#frame')) {
+                this.activeBtn = btn;
+                
+                if(document.querySelector('iframe#frame')) {      // если вызвано модальное окно
                     this.overlay.style.display = 'flex';
-                } else {
-                    const path = btn.getAttribute('data-url');
-                    this.createPlayer(path);
+                    if(this.path !== btn.getAttribute('data-url')) {
+                        this.path = btn.getAttribute('data-url');
+                        this.player.loadVideoById({videoId: this.path});
+                    }
+                } else {                                          // если ещё не вызвано модальное окно
+                    this.path = btn.getAttribute('data-url');   // то создаём новое инициализируещее свойство this.path, которое принимает дата урл из той кнопки, по которой был произведён клик
+                    this.createPlayer(this.path);               // и будем создавать плеер
                 }
             });
         });
@@ -37,13 +43,15 @@ export default class VideoPlayer {
     }
 
     init() {
-        const tag = document.createElement('script');
+        if(this.btns.length > 0) {
+            const tag = document.createElement('script');
 
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        this.bindTriggers();
-        this.bindCloseBtn();
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    
+            this.bindTriggers();
+            this.bindCloseBtn();
+        }
     }
 }
