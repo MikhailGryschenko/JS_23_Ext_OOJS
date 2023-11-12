@@ -3,6 +3,8 @@ import MiniSlider from "./modules/slider/slider-mini";
 import VideoPlayer from "./modules/playVideo";
 import Difference from "./modules/difference";
 import Form from "./modules/forms";
+import ShowInfo from "./modules/showInfo";
+import Download from "./modules/download";
 
 window.addEventListener('DOMContentLoaded', () => {
     const slider = new MainSlider({container: '.page', btns: '.next', modal: '.hanson'});
@@ -45,4 +47,8 @@ window.addEventListener('DOMContentLoaded', () => {
     difference.init(); */
     new Difference('.officerold', '.officernew', '.officer__card-item').init(); // можно так, этот экземпляр один раз отработает и больше не пригодится нам
     new Form('.form').init();
+
+    new ShowInfo('.plus__content').init();
+
+    new Download('.download').init();
 });

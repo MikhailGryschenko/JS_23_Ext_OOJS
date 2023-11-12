@@ -54,6 +54,47 @@ class Difference {
 
 /***/ }),
 
+/***/ "./src/js/modules/download.js":
+/*!************************************!*\
+  !*** ./src/js/modules/download.js ***!
+  \************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ Download; }
+/* harmony export */ });
+class Download {
+  constructor(triggers) {
+    this.btns = document.querySelectorAll(triggers);
+    this.path = 'assets/img/mainbg.jpg'; // в будущем в зависимости от кнопки мы можем подставлять разные пути (с помощью case, например)
+  }
+
+  downloadItem(path) {
+    const link = document.createElement('a'); // создаём ссылку
+
+    link.setAttribute('href', path); // добавляем необходимые аттрибуты
+    link.setAttribute('download', 'nice_picture');
+    link.style.display = 'none'; // делаем элемент невидимым
+    document.body.appendChild(link); // помещаем его на страницу
+
+    link.click(); // вызываем событие клик на нашем элементе
+
+    document.body.removeChild(link); // убираем элемент со страницы
+  }
+
+  init() {
+    this.btns.forEach(item => {
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        this.downloadItem(this.path);
+      });
+    });
+  }
+}
+
+/***/ }),
+
 /***/ "./src/js/modules/forms.js":
 /*!*********************************!*\
   !*** ./src/js/modules/forms.js ***!
@@ -195,24 +236,35 @@ class VideoPlayer {
     this.btns = document.querySelectorAll(triggers);
     this.overlay = document.querySelector(overlay);
     this.close = this.overlay.querySelector('.close');
+    this.onPlayerStateChange = this.onPlayerStateChange.bind(this); //!!! мы жёстко привязываем контекст вызова к этому методу и этому классу
   }
+
   bindTriggers() {
-    this.btns.forEach(btn => {
+    this.btns.forEach((btn, i) => {
+      try {
+        const blockedElem = btn.closest('.module__video-item').nextElementSibling;
+        if (i % 2 == 0) {
+          blockedElem.setAttribute('data-disabled', 'true');
+        }
+      } catch (e) {}
       btn.addEventListener('click', () => {
-        this.activeBtn = btn;
-        if (document.querySelector('iframe#frame')) {
-          // если вызвано модальное окно
-          this.overlay.style.display = 'flex';
-          if (this.path !== btn.getAttribute('data-url')) {
-            this.path = btn.getAttribute('data-url');
-            this.player.loadVideoById({
-              videoId: this.path
-            });
+        if (!btn.closest('.module__video-item') || btn.closest('.module__video-item').getAttribute('data-disabled') !== 'true') {
+          this.activeBtn = btn;
+          if (document.querySelector('iframe#frame')) {
+            // если вызвано модальное окно
+            this.overlay.style.display = 'flex';
+            if (this.path !== btn.getAttribute('data-url')) {
+              // проверяем, чтобы было вызвано другое видео, а не снова это же
+              this.path = btn.getAttribute('data-url');
+              this.player.loadVideoById({
+                videoId: this.path
+              });
+            }
+          } else {
+            // если ещё не вызвано модальное окно
+            this.path = btn.getAttribute('data-url'); // то создаём новое инициализирующее свойство this.path, которое принимает дата урл из той кнопки, по которой был произведён клик
+            this.createPlayer(this.path); // и будем создавать плеер
           }
-        } else {
-          // если ещё не вызвано модальное окно
-          this.path = btn.getAttribute('data-url'); // то создаём новое инициализируещее свойство this.path, которое принимает дата урл из той кнопки, по которой был произведён клик
-          this.createPlayer(this.path); // и будем создавать плеер
         }
       });
     });
@@ -228,10 +280,32 @@ class VideoPlayer {
     this.player = new YT.Player('frame', {
       height: '100%',
       width: '100%',
-      videoId: `${url}`
+      videoId: `${url}`,
+      events: {
+        'onStateChange': this.onPlayerStateChange
+      }
     });
-    console.log(this.player);
     this.overlay.style.display = 'flex';
+  }
+  onPlayerStateChange(state) {
+    //метод будет срабатывать каждый раз, когда будет изменяться состояние нашего плеера
+    try {
+      const blockedElem = this.activeBtn.closest('.module__video-item').nextElementSibling;
+      const playBtn = this.activeBtn.querySelector('svg').cloneNode(true);
+      if (state.data === 0) {
+        // из документации YouTube Player API, 0 - это когда видео завершено
+        if (blockedElem.querySelector('.play__circle').classList.contains('closed')) {
+          blockedElem.querySelector('.play__circle').classList.remove('closed');
+          blockedElem.querySelector('svg').remove();
+          blockedElem.querySelector('.play__circle').appendChild(playBtn);
+          blockedElem.querySelector('.play__text').textContent = 'play video';
+          blockedElem.querySelector('.play__text').classList.remove('attention');
+          blockedElem.style.opacity = 1;
+          blockedElem.style.filter = 'none';
+          blockedElem.setAttribute('data-disabled', 'false');
+        }
+      }
+    } catch (e) {}
   }
   init() {
     if (this.btns.length > 0) {
@@ -242,6 +316,33 @@ class VideoPlayer {
       this.bindTriggers();
       this.bindCloseBtn();
     }
+  }
+}
+
+/***/ }),
+
+/***/ "./src/js/modules/showInfo.js":
+/*!************************************!*\
+  !*** ./src/js/modules/showInfo.js ***!
+  \************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ ShowInfo; }
+/* harmony export */ });
+class ShowInfo {
+  constructor(triggers) {
+    this.btns = document.querySelectorAll(triggers);
+  }
+  init() {
+    this.btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sibling = btn.closest('.module__info-show').nextElementSibling;
+        sibling.classList.toggle('msg');
+        sibling.style.marginTop = '20px';
+      });
+    });
   }
 }
 
@@ -508,6 +609,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_playVideo__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/playVideo */ "./src/js/modules/playVideo.js");
 /* harmony import */ var _modules_difference__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./modules/difference */ "./src/js/modules/difference.js");
 /* harmony import */ var _modules_forms__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./modules/forms */ "./src/js/modules/forms.js");
+/* harmony import */ var _modules_showInfo__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./modules/showInfo */ "./src/js/modules/showInfo.js");
+/* harmony import */ var _modules_download__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./modules/download */ "./src/js/modules/download.js");
+
+
 
 
 
@@ -556,6 +661,8 @@ window.addEventListener('DOMContentLoaded', () => {
       difference.init(); */
   new _modules_difference__WEBPACK_IMPORTED_MODULE_3__["default"]('.officerold', '.officernew', '.officer__card-item').init(); // можно так, этот экземпляр один раз отработает и больше не пригодится нам
   new _modules_forms__WEBPACK_IMPORTED_MODULE_4__["default"]('.form').init();
+  new _modules_showInfo__WEBPACK_IMPORTED_MODULE_5__["default"]('.plus__content').init();
+  new _modules_download__WEBPACK_IMPORTED_MODULE_6__["default"]('.download').init();
 });
 }();
 /******/ })()
